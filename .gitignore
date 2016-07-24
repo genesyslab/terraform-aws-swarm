@@ -1,0 +1,15 @@
+*.tfvars
+*.tfplan
+*.tfstate
+*.tfstate.backup
+*.pem
+*.crt
+*.ovpn*
+.terraform/
+*.ovpn
+keys/
+.chef/
+workspace/*
+berks-cookbooks/
+chef/nodes/
+.vagrant/
