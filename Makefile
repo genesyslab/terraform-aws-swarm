@@ -24,7 +24,7 @@ TF_FILES=$(wildcard *.tf)
 		make -C $$i; \
 	done
 
-plan:
+plan: .terraform
 	terraform plan -out terraform.tfplan $(TF_VAR_ARGS)
 
 terraform.tfplan: $(TF_FILES) .terraform

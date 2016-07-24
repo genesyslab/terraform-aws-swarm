@@ -2,14 +2,11 @@ variable "environment_name" {}
 variable "key_name" {}
 variable "ssh_keypath"{}
 variable "owner" {}
-
+variable "ami" {}
 # TODO this should be multiple and we should be using a map to spread out the
 # masters
 /*variable "aws_availability_zone_primary" {}*/
 variable "aws_availability_zone" {}
-
-/*variable "aws_availability_zone_secondary" {}*/
-variable "aws_region" {}
 variable "subnet_id" {}
 variable "security_group_ids"{}
 variable "swarm_install_dir" {
@@ -31,13 +28,6 @@ variable "count" {
 
 variable "instance_type" {
 	default = "t2.micro"
-}
-
-module "coreos_amis" {
-  source = "github.com/terraform-community-modules/tf_aws_coreos_ami"
-  region = "${var.aws_region}"
-  channel = "stable"
-  virttype = "hvm"
 }
 
 resource "template_file" "start_consul_sh" {
@@ -68,9 +58,9 @@ resource "null_resource" "start_script_provision" {
    }
    provisioner "remote-exec" {
      inline = [
-      "cat << 'VPN_START_SCRIPT' > ${var.swarm_install_dir}/consul_start.sh",
+      "cat << 'CONSUL_START_SCRIPT' > ${var.swarm_install_dir}/consul_start.sh",
       "${element(template_file.start_consul_sh.*.rendered, count.index)}",
-      "VPN_START_SCRIPT",
+      "CONSUL_START_SCRIPT",
       "sudo mkdir -p /var/consul",
       "sudo mv /tmp/consul_start.sh /var/consul",
       "sudo chmod 755 ${var.swarm_install_dir}/consul_start.sh",
@@ -84,7 +74,7 @@ resource "null_resource" "start_script_provision" {
 # We have a bootstrap
 resource "aws_instance" "swarm_server" {
     availability_zone = "${var.aws_availability_zone}"
-    ami = "${module.coreos_amis.ami_id}"
+    ami = "${var.ami}"
     subnet_id = "${var.subnet_id}"
     instance_type = "${var.instance_type}"
     key_name = "${var.key_name}"
@@ -98,7 +88,7 @@ resource "aws_instance" "swarm_server" {
       Environment = "${var.environment_name}"
     }
     connection {
-        user =  "core"
+        user =  "${var.account}"
         key_file = "${var.ssh_keypath}"
     }
     provisioner "remote-exec" {
