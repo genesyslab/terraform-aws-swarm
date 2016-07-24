@@ -12,7 +12,12 @@ variable "aws_availability_zone" {}
 variable "aws_region" {}
 variable "subnet_id" {}
 variable "security_group_ids"{}
-
+variable "swarm_install_dir" {
+  default="/var/swarm"
+}
+variable "account" {
+  default = "core"
+}
 
 /**
  * Note that as of now, we can't actually override
@@ -58,20 +63,20 @@ resource "null_resource" "start_script_provision" {
    }
    connection {
      host = "${element(aws_instance.swarm_server.*.private_ip, count.index)}"
-     user =  "core"
+     user =  "${var.account}"
      key_file = "${var.ssh_keypath}"
    }
    provisioner "remote-exec" {
      inline = [
-
-      "cat << 'VPN_START_SCRIPT' > /tmp/consul_start.sh",
+      "cat << 'VPN_START_SCRIPT' > ${var.swarm_install_dir}/consul_start.sh",
       "${element(template_file.start_consul_sh.*.rendered, count.index)}",
       "VPN_START_SCRIPT",
       "sudo mkdir -p /var/consul",
       "sudo mv /tmp/consul_start.sh /var/consul",
-      "sudo chmod 755 /var/consul/consul_start.sh",
-      "/var/consul/consul_start.sh"
-
+      "sudo chmod 755 ${var.swarm_install_dir}/consul_start.sh",
+      "sudo chmod 755 ${var.swarm_install_dir}/swarm_start.sh",
+      "${var.swarm_install_dir}/consul_start.sh",
+      "${var.swarm_install_dir}/swarm_start.sh"
      ]
    }
 }
@@ -83,7 +88,6 @@ resource "aws_instance" "swarm_server" {
     subnet_id = "${var.subnet_id}"
     instance_type = "${var.instance_type}"
     key_name = "${var.key_name}"
-
     # TODO
     # Have had lots of issues with this as a variable
     count = "${var.count}"
@@ -99,15 +103,23 @@ resource "aws_instance" "swarm_server" {
     }
     provisioner "remote-exec" {
         inline =  [
-            "docker pull progrium/consul"
+            "docker pull progrium/consul",
+            "docker pull swarm",
+            "sudo mkdir -p ${var.swarm_install_dir}",
+            "sudo chown ${var.account} ${var.swarm_install_dir}"
         ]
+    }
+    provisioner "file" {
+      source = "${path.module}/swarm_start.sh"
+      destination = "${var.swarm_install_dir}/swarm_start.sh"
     }
 }
 
 
-output "instance_0_ip" {
-	value ="${aws_instance.swarm_server.0.private_ip}"
+output "swarm_master_0" {
+  value ="${aws_instance.swarm_server.0.private_ip}"
 }
+
 output "instance_1_ip" {
 	value ="${aws_instance.swarm_server.1.private_ip}"
 }

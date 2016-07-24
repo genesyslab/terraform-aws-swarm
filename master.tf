@@ -19,8 +19,6 @@ resource "terraform_remote_state" "lab" {
         # But the key by convention includes the region the lab is setup for"
         key = "${var.bucket_key}"
     }
-
-
 }
 
 module "master" {
@@ -28,16 +26,17 @@ module "master" {
   owner = "${var.owner}"
   aws_availability_zone = "${var.aws_availability_zone}"
   aws_region = "${var.aws_region}"
-  
   environment_name = "${terraform_remote_state.lab.output.environment_name}"
   ssh_keypath = "${terraform_remote_state.lab.output.key_file}"
   key_name =  "${terraform_remote_state.lab.output.key_name}"
   subnet_id = "${terraform_remote_state.lab.output.private_subnet_id}"
   security_group_ids = "${terraform_remote_state.lab.output.security_group_ids}"
-
 }
 
 
+output "swarm_master_0" {
+  value = "${module.master.swarm_master_0}"
+}
 /*
 aws_region         = us-east-1
   bastion_ip         = 52.23.190.80
