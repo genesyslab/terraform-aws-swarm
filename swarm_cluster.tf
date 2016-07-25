@@ -47,7 +47,6 @@ module "worker" {
   count = "1"
   ami = "${module.coreos_amis.ami_id}"
   swarm_master_ip = "${module.master.swarm_master_0}"
-  account = "ec2-user"
   owner = "${var.owner}"
   aws_availability_zone = "${var.aws_availability_zone}"
   environment_name = "${terraform_remote_state.lab.output.environment_name}"
