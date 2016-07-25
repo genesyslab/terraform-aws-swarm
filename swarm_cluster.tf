@@ -27,11 +27,11 @@ module "coreos_amis" {
   channel = "stable"
   virttype = "hvm"
 }
-
+/
 module "master" {
   source = "modules/swarm_master"
   count = "1"
-  ami = "${module. v.ami_id}"
+  ami = "${module.coreos_amis.ami_id}"
   owner = "${var.owner}"
   aws_availability_zone = "${var.aws_availability_zone}"
   environment_name = "${terraform_remote_state.lab.output.environment_name}"
@@ -41,21 +41,11 @@ module "master" {
   security_group_ids = "${terraform_remote_state.lab.output.security_group_ids}"
 }
 
-/**
-module "amazon_amis" {
-  source = "github.com/atsaki/tf_aws_nat_ami"
-  region = "${var.aws_region}"
-  volumetype = "ebs"
-  virttype = "hvm"
-}
-**/
 
 module "worker" {
   source = "modules/swarm_worker"
-  count = "2"
-
+  count = "1"
   ami = "${module.coreos_amis.ami_id}"
-  #ami = "ami-dc6aa9b1"
   swarm_master_ip = "${module.master.swarm_master_0}"
   account = "ec2-user"
   owner = "${var.owner}"
@@ -70,21 +60,3 @@ module "worker" {
 output "swarm_master_0" {
   value = "${module.master.swarm_master_0}"
 }
-/*
-aws_region         = us-east-1
-  bastion_ip         = 52.23.190.80
-  bastion_user       = centos
-  bucket_key         = us-east-1/vpc/terraform.tfstate
-  environment_name   = infratest
-  key_file           = /home/vagrant/.ssh/deploy_key.pem
-  key_name           = deploy_key
-  private_subnet_id  = subnet-c72aca8e
-  security_group_ids = sg-cbcdc5b0
-  vpc_cidr           = 10.60.0.0/16
-module "vpn" {
-  source = "../modules/vpn"
-  host_address = "${terraform_remote_state.lab.output.bastion_ip}"
-  host_user = "${terraform_remote_state.lab.output.bastion_user}"
-  ssh_keypath = "${terraform_remote_state.lab.output.key_file}"
-  vpn_cidr = "${terraform_remote_state.lab.output.vpc_cidr}"
-}*/

@@ -58,6 +58,30 @@ resource "aws_instance" "swarm_agent" {
       Owner = "${var.owner}"
       Environment = "${var.environment_name}"
     }
+
+    # Ensure docker service is enabled so that the master
+    # can run docker on the agents
+    user_data = <<EOC
+#cloud-config
+
+coreos:
+  units:
+    - name: docker-tcp.socket
+      command: start
+      enable: true
+      content: |
+        [Unit]
+        Description=Docker Socket for the API
+
+        [Socket]
+        ListenStream=2375
+        BindIPv6Only=both
+        Service=docker.service
+
+        [Install]
+        WantedBy=sockets.target
+  EOC
+
     connection {
         user =  "${var.account}"
         key_file = "${var.ssh_keypath}"
