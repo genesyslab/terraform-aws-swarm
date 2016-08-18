@@ -11,11 +11,11 @@ variable "subnet_id" {}
 variable "security_group_ids" {
   type = "list"
 }
-variable "leader_number" {
+variable "master_number" {
   default = 2
 }
 variable "worker_number" {
-  default = "3"
+  default = 3
 }
 
 
@@ -28,7 +28,7 @@ module "coreos_amis" {
 /
 module "master" {
   source = "modules/swarm_master"
-  count = "${var.leader_number}"
+  count = "${var.master_number}"
   ami = "${module.coreos_amis.ami_id}"
   owner = "${var.owner}"
   aws_availability_zone = "${var.aws_availability_zone}"
@@ -43,7 +43,7 @@ module "master" {
 
 module "worker" {
   source = "modules/swarm_worker"
-  count = "3"
+  count = "${var.worker_number}"
   ami = "${module.coreos_amis.ami_id}"
   swarm_master_ip = "${module.master.swarm_master_0}"
   owner = "${var.owner}"

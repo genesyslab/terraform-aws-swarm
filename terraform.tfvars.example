@@ -1,0 +1,24 @@
+
+# Used to Tag instances to make it easier to organize
+owner =  "My instances"
+environment_name = "dev"
+
+
+
+# Where do you want this?
+aws_region = "us-west-1"
+# In the future this will be multiple zones.  For now, just pick one
+aws_availability_zone = "us-west-1a"
+subnet_id = "subnet-mysubnetid"
+
+# should allow inter group communication over 2376, and expose
+# swarm master over 4000
+security_group_ids = ["sg-dockerhosts", "sg-swarmmaster"]
+
+# Key name for AWS, and actual pem file required to
+# provision instances
+ssh_keypath = "./shared-arch.pem"
+key_name = "shared_arch"
+
+master_number="1"
+worker_number="2"
