@@ -8,7 +8,9 @@ variable "ami" {}
 /*variable "aws_availability_zone_primary" {}*/
 variable "aws_availability_zone" {}
 variable "subnet_id" {}
-variable "security_group_ids"{}
+variable "security_group_ids"{
+  type = "list"
+}
 variable "swarm_install_dir" {
   default="/var/swarm"
 }
@@ -81,7 +83,7 @@ resource "aws_instance" "swarm_server" {
     # TODO
     # Have had lots of issues with this as a variable
     count = "${var.count}"
-    vpc_security_group_ids = ["${split(",", var.security_group_ids)}"]
+    vpc_security_group_ids = "${var.security_group_ids}"
     tags {
       Name = "swarm-master-${count.index}"
       Owner = "${var.owner}"
